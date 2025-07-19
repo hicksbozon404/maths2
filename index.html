@@ -1,1 +1,884 @@
-n
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Quiz: Mathematics - Sets, Numbers & Surds</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F9FA; /* Light gray */
+            color: #2C3E50; /* Dark slate */
+        }
+        .header {
+            background: linear-gradient(to right, #2C3E50, #34495E); /* Dark slate/charcoal */
+            color: white;
+            padding: 2.5rem 0; /* Increased padding */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .header h1 {
+            font-size: 3.5rem; /* Larger font */
+            line-height: 1.2;
+        }
+        .header p {
+            font-size: 1.25rem; /* Larger sub-text */
+            opacity: 0.9;
+        }
+        .header .developer-name {
+            font-size: 1.125rem;
+            color: #FFD700; /* Gold accent */
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .section-card {
+            background-color: #ffffff;
+            border: 1px solid #E0E6EB; /* Light border */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 2.5rem; /* Increased padding */
+            margin-bottom: 3.5rem; /* Increased margin */
+        }
+        .question-card {
+            background-color: #ffffff;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: 1px solid #EAEFF4; /* Lighter border */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 2rem;
+        }
+        .question-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        }
+        .solution-content {
+            display: none;
+            border-top: 1px solid #E0E6EB; /* Light border */
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .solution-content.show {
+            display: block;
+        }
+        .filter-btn {
+            background-color: #ffffff;
+            color: #5D6D7E; /* Darker grey-blue */
+            border: 1px solid #5D6D7E;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+            padding: 0.6rem 1.2rem; /* Adjusted padding */
+            border-radius: 9999px; /* Full rounded */
+        }
+        .filter-btn:hover {
+            background-color: #EAEFF4; /* Lighter hover */
+        }
+        .filter-btn.active {
+            background-color: #5D6D7E; /* Darker grey-blue */
+            color: white;
+            font-weight: 600;
+        }
+        .toggle-solution-btn {
+            background-color: #F39C12; /* Orange/Gold */
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .toggle-solution-btn:hover {
+            background-color: #E67E22; /* Darker orange */
+        }
+        .math-notation, .math-formula {
+            font-family: 'Georgia', serif; /* More classic math font */
+            font-style: normal; /* Not italic by default for formulas */
+            color: #2C3E50; /* Dark slate */
+            font-weight: bold;
+            display: inline-block;
+            padding: 0 0.1rem;
+        }
+        .question-type-select {
+            border-color: #5D6D7E; /* Darker grey-blue */
+            color: #5D6D7E;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%235D6D7E' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.5em 1.5em;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            padding: 0.6rem 2.5rem 0.6rem 1.2rem;
+            border-radius: 9999px;
+            background-color: white;
+        }
+        .question-type-select option {
+            color: #2C3E50;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 40vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .mcq-option {
+            @apply flex items-center p-3 mb-2 border border-gray-200 rounded-lg cursor-pointer transition-all duration-200 ease-in-out;
+        }
+        .mcq-option:hover {
+            @apply bg-blue-50 border-blue-200;
+        }
+        .mcq-option input[type="radio"] {
+            @apply mr-3 h-4 w-4 text-blue-600 focus:ring-blue-600 border-gray-300;
+        }
+        .mcq-option.correct {
+            @apply bg-green-100 border-green-400;
+        }
+        .mcq-option.incorrect {
+            @apply bg-red-100 border-red-400;
+        }
+        .essay-answer-box {
+            @apply w-full p-3 border border-gray-300 rounded-md focus:ring-blue-600 focus:border-blue-600;
+        }
+        .tool-input {
+            @apply w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500;
+        }
+        .tool-btn {
+            @apply px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition;
+        }
+        .number-line-example {
+            border: 1px solid #DCE4EC; /* Lighter border */
+            padding: 20px; /* More padding */
+            margin-top: 20px;
+            background-color: #F8FAFC; /* Light background */
+            border-radius: 10px; /* More rounded */
+            position: relative;
+            overflow-x: auto;
+            min-height: 120px; /* Taller */
+            display: flex; /* Flexbox for alignment */
+            align-items: center; /* Center content vertically */
+            justify-content: center; /* Center content horizontally */
+        }
+        .line {
+            height: 2px;
+            background-color: #333;
+            position: absolute;
+            width: 90%;
+            left: 5%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .tick {
+            width: 1px;
+            height: 10px; /* Taller ticks */
+            background-color: #333;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .label {
+            position: absolute;
+            top: calc(50% + 15px); /* Lower labels */
+            font-size: 0.9em; /* Slightly larger font */
+            transform: translateX(-50%);
+            color: #4A5568; /* Darker label color */
+        }
+        .point {
+            width: 12px; /* Larger points */
+            height: 12px;
+            border-radius: 50%;
+            background-color: #3498DB; /* Blue point */
+            border: 2px solid #2C3E50; /* Darker border */
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .point.open {
+            background-color: transparent;
+        }
+        .shade {
+            height: 10px; /* Thicker shade */
+            background-color: #A9D0F5; /* Lighter blue shade */
+            opacity: 0.7;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container mx-auto px-4 py-8">
+        
+        <header class="header text-center mb-12">
+            <h1 class="font-bold tracking-tight">Mathematics: Sets, Numbers & Surds</h1>
+            <p class="mt-3 opacity-90">Exploring Fundamental Concepts in Number Systems</p>
+            <p class="mt-4 developer-name">Developed by Hicks bozon404</p>
+        </header>
+
+        <section id="dashboard" class="section-card">
+            <h2 class="text-3xl font-bold text-center mb-6 text-gray-800">Learning Path Overview</h2>
+            <p class="text-center text-gray-600 mb-8 max-w-3xl mx-auto">
+                This dashboard provides a visual breakdown of the quiz questions by topic, helping you focus your study on specific areas of mathematics.
+            </p>
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </section>
+
+        <section id="set-notation-explanation" class="section-card">
+            <h2 class="text-3xl font-bold text-center mb-6 text-gray-800">Understanding Set Notation & Number Lines</h2>
+            <p class="text-gray-700 mb-4">
+                In mathematics, sets are collections of distinct objects. We use specific notations to define and represent these sets, especially when dealing with intervals or ranges of numbers.
+            </p>
+            <h3 class="text-2xl font-semibold text-gray-700 mb-3">Types of Brackets in Set Notation:</h3>
+            <ul class="list-disc list-inside space-y-2 text-gray-700 mb-6">
+                <li><span class="font-bold text-blue-800">{ } Curly Brackets (Braces):</span> Used to define a set by listing its elements (Roster Method) or by describing a property its elements must satisfy (Set-Builder Notation).
+                    <ul class="list-circle list-inside ml-5">
+                        <li>**Roster Method:** <span class="math-notation">{1, 2, 3}</span> (The set containing elements 1, 2, and 3)</li>
+                        <li>**Set-Builder Notation:** <span class="math-notation">{x | x &isin; &real;, x &gt; 5}</span> (The set of all real numbers x such that x is greater than 5)</li>
+                    </ul>
+                </li>
+                <li><span class="font-bold text-blue-800">( ) Parentheses (Round Brackets):</span> Used to denote an **open interval**. This means the endpoints are **not included** in the set. Often used with inequality signs <span class="math-notation">&lt;</span> or <span class="math-notation">&gt;</span>.
+                    <ul class="list-circle list-inside ml-5">
+                        <li>**Interval Notation:** <span class="math-notation">(2, 5)</span> represents all real numbers between 2 and 5, *excluding* 2 and 5.</li>
+                        <li>**Inequality:** <span class="math-notation">2 &lt; x &lt; 5</span></li>
+                    </ul>
+                </li>
+                <li><span class="font-bold text-blue-800">[ ] Square Brackets (Box Brackets):</span> Used to denote a **closed interval**. This means the endpoints **are included** in the set. Often used with inequality signs <span class="math-notation">&le;</span> or <span class="math-notation">&ge;</span>.
+                    <ul class="list-circle list-inside ml-5">
+                        <li>**Interval Notation:** <span class="math-notation">[2, 5]</span> represents all real numbers between 2 and 5, *including* 2 and 5.</li>
+                        <li>**Inequality:** <span class="math-notation">2 &le; x &le; 5</span></li>
+                    </ul>
+                </li>
+                <li><span class="font-bold text-blue-800">Mixed Brackets:</span> Combinations are possible, e.g., <span class="math-notation">(2, 5]</span> means 2 is excluded, 5 is included. <span class="math-notation">[2, 5)</span> means 2 is included, 5 is excluded.</li>
+            </ul>
+
+            <h3 class="text-2xl font-semibold text-gray-700 mb-3">Representing Sets on a Number Line:</h3>
+            <p class="text-gray-700 mb-4">
+                Number lines visually represent sets of real numbers.
+            </p>
+            <ul class="list-disc list-inside space-y-2 text-gray-700 mb-4">
+                <li>**Open Circle (or Parenthesis):** Used for endpoints that are **not included** in the set (corresponding to <span class="math-notation">&lt;</span>, <span class="math-notation">&gt;</span>, or `(` / `)`).</li>
+                <li>**Closed Circle (or Square Bracket):** Used for endpoints that **are included** in the set (corresponding to <span class="math-notation">&le;</span>, <span class="math-notation">&ge;</span>, or `[` / `]`).</li>
+                <li>**Shading:** The line segment between the endpoints is shaded to indicate all the numbers in the interval. Arrows extend the shading to infinity for unbounded intervals.</li>
+            </ul>
+
+            <h4 class="text-xl font-semibold text-blue-700 mb-2">Example: Representing <span class="math-notation">(3, 7]</span> on a Number Line</h4>
+            <div class="number-line-example relative">
+                <div class="line"></div>
+                <!-- Ticks and Labels (adjusting positions for better spread) -->
+                <div class="tick" style="left: 5%;"></div><div class="label" style="left: 5%;">-1</div>
+                <div class="tick" style="left: 15%;"></div><div class="label" style="left: 15%;">0</div>
+                <div class="tick" style="left: 25%;"></div><div class="label" style="left: 25%;">1</div>
+                <div class="tick" style="left: 35%;"></div><div class="label" style="left: 35%;">2</div>
+                <div class="tick" style="left: 45%;"></div><div class="label" style="left: 45%;">3</div>
+                <div class="tick" style="left: 55%;"></div><div class="label" style="left: 55%;">4</div>
+                <div class="tick" style="left: 65%;"></div><div class="label" style="left: 65%;">5</div>
+                <div class="tick" style="left: 75%;"></div><div class="label" style="left: 75%;">6</div>
+                <div class="tick" style="left: 85%;"></div><div class="label" style="left: 85%;">7</div>
+                <div class="tick" style="left: 95%;"></div><div class="label" style="left: 95%;">8</div>
+                
+                <!-- Open circle at 3 (relative to 0-100% width, assuming -1 is at 5% and 8 is at 95%) -->
+                <div class="point open" style="left: calc(5% + (90% / 9) * (3 - (-1)));"></div>
+                <!-- Closed circle at 7 -->
+                <div class="point" style="left: calc(5% + (90% / 9) * (7 - (-1)));"></div>
+                <!-- Shading from 3 to 7 -->
+                <div class="shade" style="left: calc(5% + (90% / 9) * (3 - (-1))); width: calc((90% / 9) * (7 - 3));"></div>
+            </div>
+            <p class="text-gray-700 mt-4">
+                This example shows an open circle at 3 (indicating 3 is not included) and a closed circle at 7 (indicating 7 is included), with the line segment between them shaded.
+            </p>
+        </section>
+
+        <section id="surd-tool" class="section-card">
+            <h2 class="text-3xl font-bold text-center mb-6 text-gray-800">Surd Simplifier & Rationalizer</h2>
+            <p class="text-center text-gray-600 mb-6 max-w-3xl mx-auto">
+                Use this tool to simplify square root expressions or rationalize denominators.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3">Simplify a Surd</h3>
+                    <label for="simplifyInput" class="block text-sm font-medium text-gray-700 mb-1">Enter number under square root (e.g., 72):</label>
+                    <input type="number" id="simplifyInput" class="tool-input mb-4" placeholder="e.g., 72">
+                    <button id="simplifyBtn" class="tool-btn w-full">Simplify &radic;X</button>
+                    <div id="simplifyResult" class="mt-5 p-4 bg-gray-100 rounded-md text-gray-800 font-medium border border-gray-200">Result:</div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3">Rationalize a Denominator</h3>
+                    <label for="numeratorInput" class="block text-sm font-medium text-gray-700 mb-1">Numerator (e.g., 5):</label>
+                    <input type="text" id="numeratorInput" class="tool-input mb-3" value="1" placeholder="e.g., 5 or 2+sqrt(3)">
+                    <label for="denominatorInput" class="block text-sm font-medium text-gray-700 mb-1">Denominator (e.g., sqrt(3) or 2+sqrt(5)):</label>
+                    <input type="text" id="denominatorInput" class="tool-input mb-4" placeholder="e.g., sqrt(3) or 2+sqrt(5)">
+                    <button id="rationalizeBtn" class="tool-btn w-full">Rationalize</button>
+                    <div id="rationalizeResult" class="mt-5 p-4 bg-gray-100 rounded-md text-gray-800 font-medium border border-gray-200">Result:</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="questions-section" class="mb-8">
+            <h2 class="text-3xl font-bold text-center mb-6 text-gray-800">Interactive Practice Questions</h2>
+            <p class="text-center text-gray-600 mb-8 max-w-3xl mx-auto">
+                Test your knowledge with a diverse set of questions. Filter by topic or question type, attempt your answer, and then reveal the detailed solution to enhance your learning.
+            </p>
+
+            <div class="flex flex-wrap justify-center items-center gap-4 mb-10">
+                <div id="filters" class="flex flex-wrap justify-center gap-2 md:gap-4">
+                    <button class="filter-btn active px-5 py-2 text-sm md:text-base" data-filter="all">All (<span id="allCount"></span>)</button>
+                    <button class="filter-btn px-5 py-2 text-sm md:text-base" data-filter="sets">Sets & Notation (<span id="setsCount"></span>)</button>
+                    <button class="filter-btn px-5 py-2 text-sm md:text-base" data-filter="rational_irrational">Rational & Irrational Numbers (<span id="rationalIrrationalCount"></span>)</button>
+                    <button class="filter-btn px-5 py-2 text-sm md:text-base" data-filter="repeating_decimals">Repeating Decimals (<span id="repeatingDecimalsCount"></span>)</button>
+                    <button class="filter-btn px-5 py-2 text-sm md:text-base" data-filter="surds_simplification">Surds & Simplification (<span id="surdsSimplificationCount"></span>)</button>
+                    <button class="filter-btn px-5 py-2 text-sm md:text-base" data-filter="rationalization">Rationalization (<span id="rationalizationCount"></span>)</button>
+                </div>
+                <div class="ml-0 md:ml-4 mt-4 md:mt-0">
+                    <select id="questionTypeFilter" class="question-type-select px-5 py-2 text-sm md:text-base">
+                        <option value="all">All Types</option>
+                        <option value="mcq">Multiple Choice</option>
+                        <option value="essay">Essay</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="questions-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            </div>
+        </section>
+
+    </div>
+
+    <template id="question-card-template">
+        <div class="question-card flex flex-col">
+            <h3 class="text-xl font-bold mb-3 text-gray-700">Question <span class="question-id"></span> (<span class="question-type-display"></span>)</h3>
+            <p class="question-text flex-grow mb-6 text-gray-700 leading-relaxed"></p>
+            <div class="mcq-options-container mb-6"></div>
+            <textarea class="essay-answer-box hidden mb-6" rows="8" placeholder="Type your answer here..."></textarea>
+            
+            <button class="toggle-solution-btn mt-auto w-full text-center">Show Solution</button>
+            <div class="solution-content"></div>
+        </div>
+    </template>
+    
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const questionsData = [
+        // Sets & Notation (10 MCQs, 5 Essays = 15)
+        { id: 1, type: 'mcq', category: 'sets', text: 'Which symbol represents the union of two sets A and B?', options: ['A &cap; B', 'A &cup; B', 'A &isin; B', 'A &not; B'], answer: 'A &cup; B', explanation: 'The symbol &cup; represents the union, which includes all elements from both sets.' },
+        { id: 2, type: 'mcq', category: 'sets', text: 'If A = {1, 2, 3} and B = {3, 4, 5}, what is A &cap; B?', options: ['{1, 2, 3, 4, 5}', '{1, 2, 4, 5}', '{3}', '{}'], answer: '{3}', explanation: 'The intersection (&cap;) includes only elements common to both sets.' },
+        { id: 3, type: 'essay', category: 'sets', text: 'Explain the difference between an "open interval" and a "closed interval" in set notation, and how each is represented on a number line.', solution: 'An **open interval** includes all real numbers between two given endpoints, but *does not include* the endpoints themselves. It is denoted by parentheses <span class="math-notation">(a, b)</span>. On a number line, open intervals are represented by open circles (or parentheses) at the endpoints, with a shaded line connecting them.\n\nA **closed interval** includes all real numbers between two given endpoints, *including* the endpoints themselves. It is denoted by square brackets <span class="math-notation">[a, b]</span>. On a number line, closed intervals are represented by closed (filled) circles (or square brackets) at the endpoints, with a shaded line connecting them.' },
+        { id: 4, type: 'mcq', category: 'sets', text: 'Which of the following describes an empty set?', options: ['A set with one element', 'A set containing all numbers', 'A set with no elements', 'A set that is a subset of every set'], answer: 'A set with no elements', explanation: 'An empty set, denoted by &empty; or {}, is a set containing no elements.' },
+        { id: 5, type: 'mcq', category: 'sets', text: 'How is the interval <span class="math-notation">x &ge; 5</span> represented in interval notation?', options: ['(5, &infin;)', '[5, &infin;)', '(-&infin;, 5)', '(-&infin;, 5]'], answer: '[5, &infin;)', explanation: 'The square bracket indicates 5 is included, and &infin; always uses a parenthesis.' },
+        { id: 6, type: 'essay', category: 'sets', text: 'Given the universal set U = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10} and set A = {2, 4, 6, 8, 10}, find the complement of A (A&prime;) and explain your answer.', solution: 'The complement of a set A (denoted A&prime; or A<sup>c</sup>) consists of all elements in the universal set (U) that are *not* in A. \n\nGiven U = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10} and A = {2, 4, 6, 8, 10}.\n\nTo find A&prime;, we remove the elements of A from U:\nA&prime; = {1, 3, 5, 7, 9}.\n\nThis means A&prime; contains all the odd numbers between 1 and 10, as those are the numbers in U that are not in A.' },
+        { id: 7, type: 'mcq', category: 'sets', text: 'If A is a subset of B, which notation is correct?', options: ['A &sup; B', 'A &isin; B', 'A &sub; B', 'A = B'], answer: 'A &sub; B', explanation: 'The symbol &sub; means "is a subset of".' },
+        { id: 8, type: 'mcq', category: 'sets', text: 'Which bracket type indicates that an endpoint is NOT included in an interval?', options: ['[ ]', '{ }', '( )', '< >'], answer: '( )', explanation: 'Parentheses denote open intervals where endpoints are excluded.' },
+        { id: 9, type: 'mcq', category: 'sets', text: 'What does the notation <span class="math-notation">{x | x is an even number}</span> represent?', options: ['Roster method', 'Set-builder notation', 'Interval notation', 'Venn diagram'], answer: 'Set-builder notation', explanation: 'Set-builder notation describes the properties that elements of a set must satisfy.' },
+        { id: 10, type: 'mcq', category: 'sets', text: 'The set of all integers greater than -3 and less than or equal to 4 can be written as:', options: ['(-3, 4)', '[-3, 4]', '(-3, 4]', '[-3, 4)'], answer: '(-3, 4]', explanation: 'Greater than -3 means -3 is excluded (parenthesis). Less than or equal to 4 means 4 is included (square bracket).' },
+        { id: 11, type: 'essay', category: 'sets', text: 'Describe the concept of a "universal set" and its importance in set theory.', solution: 'A **universal set (U)** is a set that contains all objects or elements relevant to a particular context or problem. It is the superset of all other sets being considered in a given discussion. For example, if you are discussing sets of numbers, the universal set might be all real numbers, all integers, or all natural numbers, depending on the scope.\n\n**Importance:**\n1.  **Defines Scope:** It clearly defines the boundaries of the elements being discussed, preventing ambiguity.\n2.  **Basis for Complements:** It is essential for defining the complement of a set (all elements *not* in a given set but *within* the universal set).\n3.  **Contextualizes Operations:** It provides the larger context within which set operations like union, intersection, and difference are performed.' },
+        { id: 12, type: 'mcq', category: 'sets', text: 'If A = {a, b, c}, how many subsets does A have?', options: ['3', '6', '8', '9'], answer: '8', explanation: 'A set with n elements has 2^n subsets. Here, n=3, so 2^3 = 8 subsets ({}, {a}, {b}, {c}, {a,b}, {a,c}, {b,c}, {a,b,c}).' },
+        { id: 13, type: 'mcq', category: 'sets', text: 'Which notation corresponds to a closed circle on a number line?', options: ['(', ')', '[', '{'], answer: '[', explanation: 'A closed circle or square bracket indicates the endpoint is included.' },
+        { id: 14, type: 'essay', category: 'sets', text: 'Given sets A = {x | x is an even number between 1 and 10} and B = {x | x is a multiple of 3 between 1 and 10}, find A &cup; B and A &cap; B.', solution: 'First, list the elements of each set:\nA = {2, 4, 6, 8, 10}\nB = {3, 6, 9}\n\n**Union (A &cup; B):** This includes all unique elements present in either A or B.\nA &cup; B = {2, 3, 4, 6, 8, 9, 10}\n\n**Intersection (A &cap; B):** This includes only the elements common to both A and B.\nA &cap; B = {6}\n\nExplanation: The union combines all distinct elements from both sets. The intersection identifies only the elements that appear in both sets.' },
+        { id: 15, type: 'mcq', category: 'sets', text: 'The set of natural numbers is typically denoted by:', options: ['&real;', '&integers;', '&natural;', '&rational;'], answer: '&natural;', explanation: '&natural; (or N) typically denotes the set of natural numbers {1, 2, 3, ...} or {0, 1, 2, ...} depending on definition.' },
+
+        // Rational & Irrational Numbers (8 MCQs, 4 Essays = 12)
+        { id: 16, type: 'mcq', category: 'rational_irrational', text: 'Which of the following is a rational number?', options: ['&pi;', '&radic;2', '0.333...', 'e'], answer: '0.333...', explanation: 'A rational number can be expressed as a fraction p/q, where p and q are integers and q &ne; 0. 0.333... = 1/3.' },
+        { id: 17, type: 'mcq', category: 'rational_irrational', text: 'An irrational number is a number that cannot be expressed as:', options: ['A decimal', 'A fraction p/q', 'An integer', 'A real number'], answer: 'A fraction p/q', explanation: 'Irrational numbers are real numbers that cannot be expressed as a simple fraction.' },
+        { id: 18, type: 'essay', category: 'rational_irrational', text: 'Define rational numbers and provide three examples.', solution: 'A **rational number** is any number that can be expressed as a fraction <span class="math-notation">p/q</span>, where <span class="math-notation">p</span> and <span class="math-notation">q</span> are integers, and <span class="math-notation">q</span> is not equal to zero (<span class="math-notation">q &ne; 0</span>). When written in decimal form, rational numbers either terminate (e.g., 0.5) or repeat in a predictable pattern (e.g., 0.333...).\n\n**Examples:**\n1.  <span class="math-notation">5</span> (can be written as <span class="math-notation">5/1</span>)\n2.  <span class="math-notation">-2/3</span>\n3.  <span class="math-notation">0.25</span> (can be written as <span class="math-notation">1/4</span>)\n4.  <span class="math-notation">0.666...</span> (can be written as <span class="math-notation">2/3</span>)' },
+        { id: 19, type: 'mcq', category: 'rational_irrational', text: 'Is &radic;9 a rational or irrational number?', options: ['Rational', 'Irrational', 'Neither', 'Both'], answer: 'Rational', explanation: '&radic;9 = 3, which can be expressed as 3/1, making it a rational number.' },
+        { id: 20, type: 'mcq', category: 'rational_irrational', text: 'Which set of numbers includes all rational and irrational numbers?', options: ['Integers', 'Natural numbers', 'Real numbers', 'Whole numbers'], answer: 'Real numbers', explanation: 'The set of real numbers (&real;) encompasses all rational and irrational numbers.' },
+        { id: 21, type: 'essay', category: 'rational_irrational', text: 'Define irrational numbers and provide two common examples.', solution: 'An **irrational number** is a real number that cannot be expressed as a simple fraction <span class="math-notation">p/q</span>, where <span class="math-notation">p</span> and <span class="math-notation">q</span> are integers and <span class="math-notation">q &ne; 0</span>. When written in decimal form, irrational numbers have non-terminating and non-repeating decimal expansions.\n\n**Common Examples:**\n1.  **Pi (&pi;):** Approximately 3.14159265..., its decimal representation goes on forever without repeating.\n2.  **The square root of 2 (&radic;2):** Approximately 1.41421356..., its decimal representation also goes on forever without repeating.\n3.  **Euler\'s number (e):** Approximately 2.71828... (the base of the natural logarithm).' },
+        { id: 22, type: 'mcq', category: 'rational_irrational', text: 'The number 0 is:', options: ['Only rational', 'Only irrational', 'Both rational and irrational', 'Neither rational nor irrational'], answer: 'Only rational', explanation: '0 can be written as 0/1, making it a rational number.' },
+        { id: 23, type: 'mcq', category: 'rational_irrational', text: 'Is the sum of a rational number and an irrational number always irrational?', options: ['Yes', 'No', 'Sometimes', 'Depends on the numbers'], answer: 'Yes', explanation: 'The sum of a rational and an irrational number is always irrational. If it were rational, then subtracting the rational number would yield a rational result, contradicting the irrationality of the second number.' },
+        { id: 24, type: 'essay', category: 'rational_irrational', text: 'Explain why &radic;2 is an irrational number.', solution: 'The irrationality of &radic;2 can be proven by contradiction. Assume &radic;2 is rational. Then it can be written as a fraction <span class="math-notation">p/q</span> in its simplest form, where <span class="math-notation">p</span> and <span class="math-notation">q</span> are integers with no common factors other than 1.\n\nIf <span class="math-notation">&radic;2 = p/q</span>, then squaring both sides gives <span class="math-notation">2 = p<sup>2</sup>/q<sup>2</sup></span>, which means <span class="math-notation">p<sup>2</sup> = 2q<sup>2</sup></span>. This implies that <span class="math-notation">p<sup>2</sup></span> is an even number. If <span class="math-notation">p<sup>2</sup></span> is even, then <span class="math-notation">p</span> must also be even (since an odd number squared is odd).\n\nSince <span class="math-notation">p</span> is even, we can write <span class="math-notation">p = 2k</span> for some integer <span class="math-notation">k</span>. Substituting this into <span class="math-notation">p<sup>2</sup> = 2q<sup>2</sup></span> gives <span class="math-notation">(2k)<sup>2</sup> = 2q<sup>2</sup></span>, which simplifies to <span class="math-notation">4k<sup>2</sup> = 2q<sup>2</sup></span>, or <span class="math-notation">2k<sup>2</sup> = q<sup>2</sup></span>. This implies that <span class="math-notation">q<sup>2</sup></span> is even, and therefore <span class="math-notation">q</span> must also be even.\n\nSo, both <span class="math-notation">p</span> and <span class="math-notation">q</span> are even, meaning they share a common factor of 2. This contradicts our initial assumption that <span class="math-notation">p/q</span> was in its simplest form (no common factors). Therefore, our initial assumption that &radic;2 is rational must be false, proving that &radic;2 is an irrational number.' },
+        { id: 25, type: 'mcq', category: 'rational_irrational', text: 'Which number is an integer but not a natural number (depending on definition)?', options: ['5', '0', '-2', '1/2'], answer: '0', explanation: 'Integers include positive and negative whole numbers and zero. Natural numbers typically start from 1 (1, 2, 3...) or sometimes 0 (0, 1, 2...). If natural numbers start from 1, then 0 is an integer but not a natural number.' },
+        { id: 26, type: 'mcq', category: 'rational_irrational', text: 'Is the product of two irrational numbers always irrational?', options: ['Yes', 'No', 'Sometimes', 'Depends on the numbers'], answer: 'No', explanation: 'The product of two irrational numbers can be rational. For example, &radic;2 &times; &radic;2 = 2, which is rational.' },
+        { id: 27, type: 'essay', category: 'rational_irrational', text: 'Provide examples of numbers that belong to the following sets: Natural Numbers, Integers, Rational Numbers, Irrational Numbers.', solution: '1.  **Natural Numbers (&natural;):** These are the positive counting numbers. Examples: <span class="math-notation">1, 5, 100</span>.\n2.  **Integers (&integers;):** These include all natural numbers, their negative counterparts, and zero. Examples: <span class="math-notation">-3, 0, 7, -20</span>.\n3.  **Rational Numbers (&rational;):** Any number that can be expressed as a fraction <span class="math-notation">p/q</span> where <span class="math-notation">p, q</span> are integers and <span class="math-notation">q &ne; 0</span>. Examples: <span class="math-notation">1/2, -4, 0.75, 0.333...</span>.\n4.  **Irrational Numbers (&real; \ &rational;):** Real numbers that cannot be expressed as a simple fraction; their decimal representations are non-terminating and non-repeating. Examples: <span class="math-notation">&radic;2, &pi;, e</span>.' },
+
+        // Repeating Decimals (5 MCQs, 2 Essays = 7)
+        { id: 28, type: 'essay', category: 'repeating_decimals', text: 'Convert the repeating decimal <span class="math-notation">0.555...</span> to a fraction.', solution: 'To convert a simple repeating decimal like <span class="math-notation">0.555...</span> to a fraction, follow these steps:\n1.  **Assign a variable:** Let <span class="math-notation">x = 0.555...</span> (Equation 1)\n2.  **Multiply to shift the repeating part:** Since one digit repeats, multiply both sides by 10: <span class="math-notation">10x = 5.555...</span> (Equation 2)\n3.  **Subtract the original equation:** Subtract Equation 1 from Equation 2:\n    <span class="math-notation">10x - x = 5.555... - 0.555...</span>\n    <span class="math-notation">9x = 5</span>\n4.  **Solve for x:** Divide by 9: <span class="math-notation">x = 5/9</span>.\n\nThus, <span class="math-notation">0.555...</span> is equivalent to the fraction <span class="math-notation">5/9</span>.' },
+        { id: 29, type: 'essay', category: 'repeating_decimals', text: 'Convert the repeating decimal <span class="math-notation">0.121212...</span> to a fraction.', solution: 'To convert <span class="math-notation">0.121212...</span> to a fraction:\n1.  **Assign a variable:** Let <span class="math-notation">x = 0.121212...</span> (Equation 1)\n2.  **Multiply to shift the repeating part:** Since two digits repeat, multiply both sides by 100: <span class="math-notation">100x = 12.121212...</span> (Equation 2)\n3.  **Subtract the original equation:** Subtract Equation 1 from Equation 2:\n    <span class="math-notation">100x - x = 12.121212... - 0.121212...</span>\n    <span class="math-notation">99x = 12</span>\n4.  **Solve for x:** Divide by 99: <span class="math-notation">x = 12/99</span>.\n5.  **Simplify the fraction:** Both numerator and denominator are divisible by 3: <span class="math-notation">12 &divide; 3 = 4</span> and <span class="math-notation">99 &divide; 3 = 33</span>. So, <span class="math-notation">x = 4/33</span>.\n\nThus, <span class="math-notation">0.121212...</span> is equivalent to <span class="math-notation">4/33</span>.' },
+        { id: 30, type: 'essay', category: 'repeating_decimals', text: 'Explain the process of converting a simple repeating decimal (e.g., 0.777...) into a fraction.', solution: 'To convert a simple repeating decimal like <span class="math-notation">0.777...</span> to a fraction, follow these steps:\n1.  **Assign a variable:** Let <span class="math-notation">x = 0.777...</span> (Equation 1)\n2.  **Multiply to shift the repeating part:** Since one digit repeats, multiply both sides by 10: <span class="math-notation">10x = 7.777...</span> (Equation 2)\n3.  **Subtract the original equation:** Subtract Equation 1 from Equation 2:\n    <span class="math-notation">10x - x = 7.777... - 0.777...</span>\n    <span class="math-notation">9x = 7</span>\n4.  **Solve for x:** Divide by 9: <span class="math-notation">x = 7/9</span>.\n\nThus, <span class="math-notation">0.777...</span> is equivalent to the fraction <span class="math-notation">7/9</span>.' },
+        { id: 31, type: 'essay', category: 'repeating_decimals', text: 'Convert <span class="math-notation">0.4&macr;</span> to a fraction.', solution: 'To convert <span class="math-notation">0.4&macr;</span> (which is <span class="math-notation">0.444...</span>) to a fraction:\n1.  **Assign a variable:** Let <span class="math-notation">x = 0.444...</span> (Equation 1)\n2.  **Multiply to shift the repeating part:** Since one digit repeats, multiply both sides by 10: <span class="math-notation">10x = 4.444...</span> (Equation 2)\n3.  **Subtract the original equation:** Subtract Equation 1 from Equation 2:\n    <span class="math-notation">10x - x = 4.444... - 0.444...</span>\n    <span class="math-notation">9x = 4</span>\n4.  **Solve for x:** Divide by 9: <span class="math-notation">x = 4/9</span>.\n\nThus, <span class="math-notation">0.4&macr;</span> is equivalent to the fraction <span class="math-notation">4/9</span>.' },
+        { id: 32, type: 'mcq', category: 'repeating_decimals', text: 'Is <span class="math-notation">0.999...</span> equal to 1?', options: ['Yes', 'No', 'Only sometimes', 'Depends on context'], answer: 'Yes', explanation: 'Mathematically, 0.999... is exactly equal to 1. If x = 0.999..., then 10x = 9.999.... Subtracting gives 9x = 9, so x = 1.' },
+        { id: 33, type: 'essay', category: 'repeating_decimals', text: 'Convert the repeating decimal <span class="math-notation">0.123123...</span> to a fraction.', solution: 'To convert <span class="math-notation">0.123123...</span> to a fraction:\n1.  **Assign a variable:** Let <span class="math-notation">x = 0.123123...</span> (Equation 1)\n2.  **Multiply to shift the repeating part:** Since three digits repeat, multiply both sides by 1000: <span class="math-notation">1000x = 123.123123...</span> (Equation 2)\n3.  **Subtract the original equation:** Subtract Equation 1 from Equation 2:\n    <span class="math-notation">1000x - x = 123.123123... - 0.123123...</span>\n    <span class="math-notation">999x = 123</span>\n4.  **Solve for x:** Divide by 999: <span class="math-notation">x = 123/999</span>.\n5.  **Simplify the fraction:** Both numerator and denominator are divisible by 3: <span class="math-notation">123 &divide; 3 = 41</span> and <span class="math-notation">999 &divide; 3 = 333</span>. So, <span class="math-notation">x = 41/333</span>.\n\nThus, <span class="math-notation">0.123123...</span> is equivalent to <span class="math-notation">41/333</span>.' },
+        { id: 34, type: 'mcq', category: 'repeating_decimals', text: 'Which of the following is NOT a repeating decimal?', options: ['1/3', '2/7', '0.125', '5/11'], answer: '0.125', explanation: '0.125 is a terminating decimal (1/8), not a repeating one.' },
+
+        // Surds & Simplification (10 MCQs, 5 Essays = 15)
+        { id: 35, type: 'essay', category: 'surds_simplification', text: 'Simplify <span class="math-notation">&radic;12</span>.', solution: 'To simplify <span class="math-notation">&radic;12</span>, find the largest perfect square factor of 12. The factors of 12 are (1,12), (2,6), (3,4). The largest perfect square factor is 4.\n\n<span class="math-notation">&radic;12 = &radic;(4 &times; 3)</span>\nUsing the property <span class="math-notation">&radic;(ab) = &radic;a &times; &radic;b</span>:\n<span class="math-notation">= &radic;4 &times; &radic;3</span>\n<span class="math-notation">= 2&radic;3</span>.\n\nSo, the simplified form of <span class="math-notation">&radic;12</span> is <span class="math-notation">2&radic;3</span>.' },
+        { id: 36, type: 'mcq', category: 'surds_simplification', text: 'Which of these is a surd?', options: ['&radic;4', '&radic;9', '&radic;7', '&radic;25'], answer: '&radic;7', explanation: 'A surd is an irrational number that is the root of an integer. &radic;7 cannot be simplified to a rational number.' },
+        { id: 37, type: 'essay', category: 'surds_simplification', text: 'Explain what a "surd" is in mathematics and provide two examples of numbers that are surds and two that are not.', solution: 'A **surd** (or radical) is an irrational number that is expressed as the root of an integer. This means that its exact value cannot be expressed as a simple fraction, and its decimal representation is non-terminating and non-repeating. It is typically written using a radical symbol (<span class="math-notation">&radic;</span>) where the number under the root is not a perfect square (for square roots), perfect cube (for cube roots), etc.\n\n**Examples of numbers that ARE surds:**\n1.  <span class="math-notation">&radic;3</span> (since 3 is not a perfect square)\n2.  <span class="math-notation">&radic;10</span> (since 10 is not a perfect square)\n\n**Examples of numbers that are NOT surds:**\n1.  <span class="math-notation">&radic;9</span> (because <span class="math-notation">&radic;9 = 3</span>, which is a rational number)\n2.  <span class="math-notation">&radic;25</span> (because <span class="math-notation">&radic;25 = 5</span>, which is a rational number)' },
+        { id: 38, type: 'essay', category: 'surds_simplification', text: 'Simplify <span class="math-notation">3&radic;5 + 2&radic;5</span>.', solution: 'To simplify <span class="math-notation">3&radic;5 + 2&radic;5</span>, we treat the surd part (<span class="math-notation">&radic;5</span>) like a common variable. Since both terms have the same surd, we can add their coefficients:\n\n<span class="math-notation">3&radic;5 + 2&radic;5 = (3 + 2)&radic;5 = 5&radic;5</span>.\n\nSo, the simplified expression is <span class="math-notation">5&radic;5</span>.' },
+        { id: 39, type: 'essay', category: 'surds_simplification', text: 'Simplify <span class="math-notation">&radic;72</span>.', solution: 'To simplify <span class="math-notation">&radic;72</span>, find the largest perfect square factor of 72. The factors of 72 are (1,72), (2,36), (3,24), (4,18), (6,12), (8,9). The largest perfect square factor is 36.\n\n<span class="math-notation">&radic;72 = &radic;(36 &times; 2)</span>\nUsing the property <span class="math-notation">&radic;(ab) = &radic;a &times; &radic;b</span>:\n<span class="math-notation">= &radic;36 &times; &radic;2</span>\n<span class="math-notation">= 6&radic;2</span>.\n\nSo, the simplified form of <span class="math-notation">&radic;72</span> is <span class="math-notation">6&radic;2</span>.' },
+        { id: 40, type: 'essay', category: 'surds_simplification', text: 'Explain the process of simplifying a surd, using <span class="math-notation">&radic;50</span> as an example.', solution: 'To simplify a surd like <span class="math-notation">&radic;50</span>, the goal is to find the largest perfect square factor of the number under the radical. A perfect square is a number that is the square of an integer (e.g., 4, 9, 16, 25, 36, etc.).\n\n**Steps for simplifying &radic;50:**\n1.  **Find factors:** List pairs of factors of 50: (1, 50), (2, 25), (5, 10).\n2.  **Identify largest perfect square factor:** From the factors, 25 is the largest perfect square (<span class="math-notation">5<sup>2</sup> = 25</span>).\n3.  **Rewrite the surd:** Express the number under the radical as a product of the perfect square and the remaining factor: <span class="math-notation">&radic;50 = &radic;(25 &times; 2)</span>.\n4.  **Separate the radicals:** Use the property <span class="math-notation">&radic;(ab) = &radic;a &times; &radic;b</span>: <span class="math-notation">&radic;25 &times; &radic;2</span>.\n5.  **Simplify the perfect square:** <span class="math-notation">5 &times; &radic;2</span>.\n\nSo, the simplified form of <span class="math-notation">&radic;50</span> is <span class="math-notation">5&radic;2</span>.' },
+        { id: 41, type: 'essay', category: 'surds_simplification', text: 'Multiply and simplify: <span class="math-notation">&radic;3 &times; &radic;7</span>.', solution: 'To multiply <span class="math-notation">&radic;3 &times; &radic;7</span>, we multiply the numbers under the radical sign:\n<span class="math-notation">&radic;3 &times; &radic;7 = &radic;(3 &times; 7) = &radic;21</span>.\n\nSince 21 has no perfect square factors other than 1, <span class="math-notation">&radic;21</span> cannot be simplified further.\n\nSo, <span class="math-notation">&radic;3 &times; &radic;7 = &radic;21</span>.' },
+        { id: 42, type: 'essay', category: 'surds_simplification', text: 'Subtract <span class="math-notation">7&radic;2 - 3&radic;2</span>.', solution: 'To subtract <span class="math-notation">7&radic;2 - 3&radic;2</span>, we treat the surd part (<span class="math-notation">&radic;2</span>) like a common variable. Since both terms have the same surd, we can subtract their coefficients:\n\n<span class="math-notation">7&radic;2 - 3&radic;2 = (7 - 3)&radic;2 = 4&radic;2</span>.\n\nSo, the simplified expression is <span class="math-notation">4&radic;2</span>.' },
+        { id: 43, type: 'essay', category: 'surds_simplification', text: 'Simplify the expression <span class="math-notation">&radic;18 + &radic;8</span>.', solution: 'To simplify <span class="math-notation">&radic;18 + &radic;8</span>, first simplify each surd individually:\n\n**Simplify &radic;18:**\n* Find the largest perfect square factor of 18: 9 (<span class="math-notation">9 &times; 2 = 18</span>).\n* <span class="math-notation">&radic;18 = &radic;(9 &times; 2) = &radic;9 &times; &radic;2 = 3&radic;2</span>.\n\n**Simplify &radic;8:**\n* Find the largest perfect square factor of 8: 4 (<span class="math-notation">4 &times; 2 = 8</span>).\n* <span class="math-notation">&radic;8 = &radic;(4 &times; 2) = &radic;4 &times; &radic;2 = 2&radic;2</span>.\n\nNow, substitute the simplified surds back into the expression:\n<span class="math-notation">3&radic;2 + 2&radic;2</span>\n\nSince the surd parts are now the same (<span class="math-notation">&radic;2</span>), we can add the coefficients:\n<span class="math-notation">(3 + 2)&radic;2 = 5&radic;2</span>.\n\nSo, <span class="math-notation">&radic;18 + &radic;8 = 5&radic;2</span>.' },
+        { id: 44, type: 'mcq', category: 'surds_simplification', text: 'What is <span class="math-notation">(&radic;5)<sup>2</sup></span>?', options: ['5', '&radic;25', '25', '2&radic;5'], answer: '5', explanation: 'Squaring a square root cancels the radical: (&radic;x)^2 = x.' },
+        { id: 45, type: 'essay', category: 'surds_simplification', text: 'Simplify <span class="math-notation">&radic;200</span>.', solution: 'To simplify <span class="math-notation">&radic;200</span>, find the largest perfect square factor of 200. The factors of 200 are (1,200), (2,100), (4,50), (5,40), (8,25), (10,20). The largest perfect square factor is 100.\n\n<span class="math-notation">&radic;200 = &radic;(100 &times; 2)</span>\nUsing the property <span class="math-notation">&radic;(ab) = &radic;a &times; &radic;b</span>:\n<span class="math-notation">= &radic;100 &times; &radic;2</span>\n<span class="math-notation">= 10&radic;2</span>.\n\nSo, the simplified form of <span class="math-notation">&radic;200</span> is <span class="math-notation">10&radic;2</span>.' },
+        { id: 46, type: 'essay', category: 'surds_simplification', text: 'Multiply and simplify: <span class="math-notation">&radic;6 &times; &radic;3</span>.', solution: 'To multiply <span class="math-notation">&radic;6 &times; &radic;3</span>, we multiply the numbers under the radical sign:\n<span class="math-notation">&radic;6 &times; &radic;3 = &radic;(6 &times; 3) = &radic;18</span>.\n\nNow, simplify <span class="math-notation">&radic;18</span>:\nFind the largest perfect square factor of 18, which is 9.\n<span class="math-notation">&radic;18 = &radic;(9 &times; 2) = &radic;9 &times; &radic;2 = 3&radic;2</span>.\n\nSo, <span class="math-notation">&radic;6 &times; &radic;3 = 3&radic;2</span>.' },
+        { id: 47, type: 'mcq', category: 'surds_simplification', text: 'Which is equivalent to <span class="math-notation">&radic;1/4</span>?', options: ['1/2', '1/4', '2', '4'], answer: '1/2', explanation: '&radic;(1/4) = &radic;1 / &radic;4 = 1/2.' },
+        { id: 48, type: 'essay', category: 'surds_simplification', text: 'Simplify the expression <span class="math-notation">(&radic;7 + &radic;2)(&radic;7 - &radic;2)</span>.', solution: 'This expression is in the form <span class="math-notation">(a + b)(a - b)</span>, which simplifies to <span class="math-notation">a<sup>2</sup> - b<sup>2</sup></span>.\n\nHere, <span class="math-notation">a = &radic;7</span> and <span class="math-notation">b = &radic;2</span>.\n\nSo, <span class="math-notation">(&radic;7 + &radic;2)(&radic;7 - &radic;2) = (&radic;7)<sup>2</sup> - (&radic;2)<sup>2</sup></span>.\n\n<span class="math-notation">(&radic;7)<sup>2</sup> = 7</span>\n<span class="math-notation">(&radic;2)<sup>2</sup> = 2</span>\n\nTherefore, the expression simplifies to <span class="math-notation">7 - 2 = 5</span>.' },
+        { id: 49, type: 'essay', category: 'surds_simplification', text: 'What is the sum of <span class="math-notation">&radic;27 + &radic;3</span>?', solution: 'To find the sum of <span class="math-notation">&radic;27 + &radic;3</span>, first simplify <span class="math-notation">&radic;27</span>:\nFind the largest perfect square factor of 27, which is 9.\n<span class="math-notation">&radic;27 = &radic;(9 &times; 3) = &radic;9 &times; &radic;3 = 3&radic;3</span>.\n\nNow, substitute the simplified surd back into the expression:\n<span class="math-notation">3&radic;3 + &radic;3</span>\n\nSince the surd parts are the same (<span class="math-notation">&radic;3</span>), we can add the coefficients (remember <span class="math-notation">&radic;3</span> is <span class="math-notation">1&radic;3</span>):\n<span class="math-notation">(3 + 1)&radic;3 = 4&radic;3</span>.\n\nSo, the sum is <span class="math-notation">4&radic;3</span>.' },
+
+        // Rationalization (10 MCQs, 5 Essays = 15)
+        { id: 50, type: 'essay', category: 'rationalization', text: 'Rationalize the denominator of <span class="math-notation">1/&radic;2</span>.', solution: 'To rationalize the denominator of <span class="math-notation">1/&radic;2</span>, multiply both the numerator and the denominator by <span class="math-notation">&radic;2</span>:\n\n<span class="math-notation">1 / &radic;2 &times; &radic;2 / &radic;2</span>\n\nMultiply numerators: <span class="math-notation">1 &times; &radic;2 = &radic;2</span>\nMultiply denominators: <span class="math-notation">&radic;2 &times; &radic;2 = 2</span>\n\nSo, the rationalized form is <span class="math-notation">&radic;2 / 2</span>.' },
+        { id: 51, type: 'mcq', category: 'rationalization', text: 'What is the conjugate of <span class="math-notation">3 + &radic;5</span>?', options: ['3 - &radic;5', '3 + &radic;5', '&radic;5 - 3', '5 + &radic;3'], answer: '3 - &radic;5', explanation: 'The conjugate of (a + &radic;b) is (a - &radic;b). You change the sign of the surd term.' },
+        { id: 52, type: 'essay', category: 'rationalization', text: 'Explain why we rationalize the denominator of a fraction containing a surd.', solution: 'We rationalize the denominator of a fraction containing a surd to eliminate the irrational number from the denominator, making the expression simpler and easier to work with, especially for calculations or further algebraic manipulation. Historically, it was also done to make manual calculations easier before calculators were common, as dividing by an integer is simpler than dividing by an irrational number. It also helps in standardizing the form of expressions, making it easier to compare and combine terms.' },
+        { id: 53, type: 'essay', category: 'rationalization', text: 'Rationalize the denominator of <span class="math-notation">6/&radic;3</span>.', solution: 'To rationalize the denominator of <span class="math-notation">6/&radic;3</span>, multiply both the numerator and the denominator by <span class="math-notation">&radic;3</span>:\n\n<span class="math-notation">6 / &radic;3 &times; &radic;3 / &radic;3</span>\n\nMultiply numerators: <span class="math-notation">6 &times; &radic;3 = 6&radic;3</span>\nMultiply denominators: <span class="math-notation">&radic;3 &times; &radic;3 = 3</span>\n\nSo, the expression becomes <span class="math-notation">6&radic;3 / 3</span>.\n\nNow, simplify the fraction by dividing the numerical coefficients:\n<span class="math-notation">6&radic;3 / 3 = (6/3)&radic;3 = 2&radic;3</span>.\n\nTherefore, the rationalized form is <span class="math-notation">2&radic;3</span>.' },
+        { id: 54, type: 'mcq', category: 'rationalization', text: 'What is the first step to rationalize <span class="math-notation">1 / (2 + &radic;3)</span>?', options: ['Multiply by &radic;3/&radic;3', 'Multiply by (2 - &radic;3)/(2 - &radic;3)', 'Multiply by (2 + &radic;3)/(2 + &radic;3)', 'Multiply by 2/2'], answer: 'Multiply by (2 - &radic;3)/(2 - &radic;3)', explanation: 'For a binomial denominator (a + &radic;b), multiply both the numerator and denominator by its conjugate (a - &radic;b). This uses the difference of squares formula to eliminate the surd.' },
+        { id: 55, type: 'essay', category: 'rationalization', text: 'Rationalize the denominator of <span class="math-notation">5 / &radic;10</span>.', solution: 'To rationalize the denominator of <span class="math-notation">5 / &radic;10</span>, we need to eliminate the surd from the denominator. We do this by multiplying both the numerator and the denominator by the surd itself, <span class="math-notation">&radic;10</span>.\n\n<span class="math-notation">5 / &radic;10 &times; &radic;10 / &radic;10</span>\n\nMultiply the numerators: <span class="math-notation">5 &times; &radic;10 = 5&radic;10</span>\nMultiply the denominators: <span class="math-notation">&radic;10 &times; &radic;10 = 10</span>\n\nSo, the expression becomes <span class="math-notation">5&radic;10 / 10</span>.\n\nNow, simplify the fraction by dividing the numerical coefficients:\n<span class="math-notation">5&radic;10 / 10 = (5/10)&radic;10 = (1/2)&radic;10 = &radic;10 / 2</span>.\n\nTherefore, the rationalized form is <span class="math-notation">&radic;10 / 2</span>.' },
+        { id: 56, type: 'essay', category: 'rationalization', text: 'Rationalize the denominator of <span class="math-notation">2 / (1 - &radic;2)</span>.', solution: 'To rationalize the denominator of <span class="math-notation">2 / (1 - &radic;2)</span>, we multiply both the numerator and the denominator by the conjugate of the denominator. The denominator is <span class="math-notation">1 - &radic;2</span>, so its conjugate is <span class="math-notation">1 + &radic;2</span>.\n\n<span class="math-notation">2 / (1 - &radic;2) &times; (1 + &radic;2) / (1 + &radic;2)</span>\n\n**Numerator:** <span class="math-notation">2 &times; (1 + &radic;2) = 2 + 2&radic;2</span>.\n\n**Denominator:** Use the formula <span class="math-notation">(a - b)(a + b) = a<sup>2</sup> - b<sup>2</sup></span>:\n<span class="math-notation">(1 - &radic;2)(1 + &radic;2) = 1<sup>2</sup> - (&radic;2)<sup>2</sup> = 1 - 2 = -1</span>.\n\nSo, the expression becomes <span class="math-notation">(2 + 2&radic;2) / -1</span>.\n\nNow, divide both terms in the numerator by -1:\n<span class="math-notation">-(2 + 2&radic;2) = -2 - 2&radic;2</span>.\n\nTherefore, the rationalized form is <span class="math-notation">-2 - 2&radic;2</span>.' },
+        { id: 57, type: 'mcq', category: 'rationalization', text: 'Which expression has a rationalized denominator?', options: ['3/&radic;7', '5/(2 + &radic;3)', '&radic;5/2', '1/&radic;11'], answer: '&radic;5/2', explanation: 'The denominator 2 is a rational number, so the expression is already rationalized.' },
+        { id: 58, type: 'essay', category: 'rationalization', text: 'Rationalize the denominator of <span class="math-notation">(&radic;3 + 1) / (&radic;3 - 1)</span>.', solution: 'To rationalize the denominator of <span class="math-notation">(&radic;3 + 1) / (&radic;3 - 1)</span>, we multiply both the numerator and the denominator by the conjugate of the denominator. The denominator is <span class="math-notation">&radic;3 - 1</span>, so its conjugate is <span class="math-notation">&radic;3 + 1</span>.\n\n<span class="math-notation">(&radic;3 + 1) / (&radic;3 - 1) &times; (&radic;3 + 1) / (&radic;3 + 1)</span>\n\n**Numerator:** Use the formula <span class="math-notation">(a + b)<sup>2</sup> = a<sup>2</sup> + 2ab + b<sup>2</sup></span>:\n<span class="math-notation">(&radic;3 + 1)<sup>2</sup> = (&radic;3)<sup>2</sup> + 2(&radic;3)(1) + 1<sup>2</sup> = 3 + 2&radic;3 + 1 = 4 + 2&radic;3</span>.\n\n**Denominator:** Use the formula <span class="math-notation">(a - b)(a + b) = a<sup>2</sup> - b<sup>2</sup></span>:\n<span class="math-notation">(&radic;3 - 1)(&radic;3 + 1) = (&radic;3)<sup>2</sup> - 1<sup>2</sup> = 3 - 1 = 2</span>.\n\nSo, the expression becomes <span class="math-notation">(4 + 2&radic;3) / 2</span>.\n\nNow, simplify by dividing both terms in the numerator by 2:\n<span class="math-notation">(4/2) + (2&radic;3 / 2) = 2 + &radic;3</span>.\n\nTherefore, the rationalized form is <span class="math-notation">2 + &radic;3</span>.' },
+        { id: 59, type: 'mcq', category: 'rationalization', text: 'The process of removing a surd from the denominator of a fraction is called:', options: ['Simplification', 'Factorization', 'Rationalization', 'Conjugation'], answer: 'Rationalization', explanation: 'Rationalization is the process of converting an irrational denominator into a rational one, typically by multiplying by a suitable factor (often the conjugate).' },
+        { id: 60, type: 'essay', category: 'rationalization', text: 'Rationalize the denominator of <span class="math-notation">1 / (5 - &radic;7)</span>.', solution: 'To rationalize the denominator of <span class="math-notation">1 / (5 - &radic;7)</span>, we multiply both the numerator and the denominator by the conjugate of the denominator. The denominator is <span class="math-notation">5 - &radic;7</span>, so its conjugate is <span class="math-notation">5 + &radic;7</span>.\n\n<span class="math-notation">1 / (5 - &radic;7) &times; (5 + &radic;7) / (5 + &radic;7)</span>\n\n**Numerator:** <span class="math-notation">1 &times; (5 + &radic;7) = 5 + &radic;7</span>.\n\n**Denominator:** Use the formula <span class="math-notation">(a - b)(a + b) = a<sup>2</sup> - b<sup>2</sup></span>:\n<span class="math-notation">(5 - &radic;7)(5 + &radic;7) = 5<sup>2</sup> - (&radic;7)<sup>2</sup> = 25 - 7 = 18</span>.\n\nSo, the expression becomes <span class="math-notation">(5 + &radic;7) / 18</span>.\n\nTherefore, the rationalized form is <span class="math-notation">(5 + &radic;7) / 18</span>.' }
+    ];
+
+    const questionsGrid = document.getElementById('questions-grid');
+    const template = document.getElementById('question-card-template');
+    const filterButtons = document.querySelectorAll('#filters .filter-btn');
+    const questionTypeFilter = document.getElementById('questionTypeFilter');
+
+    // Update counts
+    const updateCounts = () => {
+        const counts = {
+            all: questionsData.length,
+            sets: questionsData.filter(q => q.category === 'sets').length,
+            rational_irrational: questionsData.filter(q => q.category === 'rational_irrational').length,
+            repeating_decimals: questionsData.filter(q => q.category === 'repeating_decimals').length,
+            surds_simplification: questionsData.filter(q => q.category === 'surds_simplification').length,
+            rationalization: questionsData.filter(q => q.category === 'rationalization').length,
+            mcq: questionsData.filter(q => q.type === 'mcq').length,
+            essay: questionsData.filter(q => q.type === 'essay').length
+        };
+        document.getElementById('allCount').textContent = counts.all;
+        document.getElementById('setsCount').textContent = counts.sets;
+        document.getElementById('rationalIrrationalCount').textContent = counts.rational_irrational;
+        document.getElementById('repeatingDecimalsCount').textContent = counts.repeating_decimals;
+        document.getElementById('surdsSimplificationCount').textContent = counts.surds_simplification;
+        document.getElementById('rationalizationCount').textContent = counts.rationalization;
+    };
+
+    function renderQuestions(categoryFilter = 'all', typeFilter = 'all') {
+        questionsGrid.innerHTML = '';
+        const filteredQuestions = questionsData.filter(q => {
+            const categoryMatch = categoryFilter === 'all' || q.category === categoryFilter;
+            const typeMatch = typeFilter === 'all' || q.type === typeFilter;
+            return categoryMatch && typeMatch;
+        });
+
+        filteredQuestions.forEach(q => {
+            const card = template.content.cloneNode(true);
+            card.querySelector('.question-id').textContent = q.id;
+            card.querySelector('.question-type-display').textContent = q.type.toUpperCase();
+            card.querySelector('.question-text').innerHTML = q.text;
+            
+            const solutionContent = card.querySelector('.solution-content');
+            
+            if (q.type === 'mcq') {
+                const optionsContainer = card.querySelector('.mcq-options-container');
+                optionsContainer.innerHTML = ''; // Clear existing options
+                q.options.forEach((option, index) => {
+                    const optionDiv = document.createElement('label');
+                    optionDiv.className = 'mcq-option';
+                    optionDiv.innerHTML = `
+                        <input type="radio" name="question-${q.id}" value="${option}">
+                        <span>${option}</span>
+                    `;
+                    // Event listener for MCQ option selection
+                    optionDiv.addEventListener('click', () => {
+                        // Clear previous highlights for this question's options
+                        optionsContainer.querySelectorAll('.mcq-option').forEach(opt => {
+                            opt.classList.remove('correct', 'incorrect');
+                        });
+
+                        const selectedOption = optionDiv.querySelector('input').value;
+                        if (selectedOption === q.answer) {
+                            optionDiv.classList.add('correct');
+                        } else {
+                            optionDiv.classList.add('incorrect');
+                            // Highlight the correct answer if an incorrect one is selected
+                            optionsContainer.querySelectorAll('.mcq-option').forEach(opt => {
+                                if (opt.querySelector('input').value === q.answer) {
+                                    opt.classList.add('correct');
+                                }
+                            });
+                        }
+                    });
+                    optionsContainer.appendChild(optionDiv);
+                });
+                card.querySelector('.essay-answer-box').classList.add('hidden');
+                solutionContent.innerHTML = `<p class="mt-4 font-semibold text-gray-700">Correct Answer: <span class="math-notation">${q.answer}</span></p><p class="text-gray-700 mt-2">Explanation: ${q.explanation}</p>`;
+
+            } else if (q.type === 'essay') {
+                card.querySelector('.mcq-options-container').classList.add('hidden');
+                card.querySelector('.essay-answer-box').classList.remove('hidden');
+                solutionContent.innerHTML = `<h4 class="font-semibold text-gray-700 mb-2">Model Solution:</h4><p class="text-gray-700 whitespace-pre-wrap">${q.solution}</p>`;
+            }
+
+            questionsGrid.appendChild(card);
+        });
+    }
+
+    questionsGrid.addEventListener('click', (e) => {
+        if (e.target.classList.contains('toggle-solution-btn')) {
+            const btn = e.target;
+            const solutionContent = btn.nextElementSibling;
+            const isVisible = solutionContent.classList.toggle('show');
+            btn.textContent = isVisible ? 'Hide Solution' : 'Show Solution';
+        }
+    });
+
+    let currentCategoryFilter = 'all';
+    let currentTypeFilter = 'all';
+
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            currentCategoryFilter = button.dataset.filter;
+            renderQuestions(currentCategoryFilter, currentTypeFilter);
+        });
+    });
+
+    questionTypeFilter.addEventListener('change', (e) => {
+        currentTypeFilter = e.target.value;
+        renderQuestions(currentCategoryFilter, currentTypeFilter);
+    });
+    
+    function setupChart() {
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        const categoryCounts = questionsData.reduce((acc, q) => {
+            acc[q.category] = (acc[q.category] || 0) + 1;
+            return acc;
+        }, {});
+
+        const labels = {
+            'sets': 'Sets & Notation',
+            'rational_irrational': 'Rational & Irrational Numbers',
+            'repeating_decimals': 'Repeating Decimals',
+            'surds_simplification': 'Surds & Simplification',
+            'rationalization': 'Rationalization'
+        };
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(categoryCounts).map(key => labels[key]),
+                datasets: [{
+                    label: '# of Questions',
+                    data: Object.values(categoryCounts),
+                    backgroundColor: [
+                        'rgba(44, 62, 80, 0.7)',  /* Dark Slate */
+                        'rgba(52, 152, 219, 0.7)', /* Blue */
+                        'rgba(243, 156, 18, 0.7)', /* Orange */
+                        'rgba(39, 174, 96, 0.7)',  /* Green */
+                        'rgba(231, 76, 60, 0.7)'   /* Red */
+                    ],
+                    borderColor: [
+                        'rgba(44, 62, 80, 1)',
+                        'rgba(52, 152, 219, 1)',
+                        'rgba(243, 156, 18, 1)',
+                        'rgba(39, 174, 96, 1)',
+                        'rgba(231, 76, 60, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            color: '#4A5568' 
+                        },
+                        grid: {
+                            color: '#E0E6EB' 
+                        }
+                    },
+                    x: {
+                         ticks: {
+                            color: '#4A5568' 
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Question Distribution by Topic',
+                        font: {
+                            size: 18,
+                            weight: 'bold'
+                        },
+                        color: '#2C3E50' 
+                    },
+                    tooltip: {
+                        backgroundColor: '#2C3E50',
+                        titleFont: {
+                            size: 14
+                        },
+                        bodyFont: {
+                            size: 12
+                        },
+                        padding: 10,
+                        cornerRadius: 4
+                    }
+                }
+            }
+        });
+    }
+
+    // Utility function to find GCD for fraction simplification
+    function gcd(a, b) {
+        return b === 0 ? a : gcd(b, a % b);
+    }
+
+    // Function to simplify a surd (e.g., sqrt(72) -> 6sqrt(2))
+    function simplifySurd(n) {
+        if (n < 0) return "Error: Cannot simplify square root of negative number";
+        if (n === 0) return "0";
+        if (n === 1) return "1";
+
+        let coefficient = 1;
+        let remainder = n;
+
+        for (let i = 2; i * i <= remainder; i++) {
+            while (remainder % (i * i) === 0) {
+                coefficient *= i;
+                remainder /= (i * i);
+            }
+        }
+
+        if (remainder === 1) {
+            return coefficient.toString();
+        } else if (coefficient === 1) {
+            return `&radic;${remainder}`;
+        } else {
+            return `${coefficient}&radic;${remainder}`;
+        }
+    }
+
+    // Function to parse a string that might contain a number or a simple surd
+    function parseNumberOrSurd(inputStr) {
+        inputStr = inputStr.trim();
+        const num = parseFloat(inputStr);
+        if (!isNaN(num)) {
+            return { type: 'number', value: num };
+        }
+        const sqrtMatch = inputStr.match(/sqrt\((\d+)\)/i);
+        if (sqrtMatch) {
+            const val = parseFloat(sqrtMatch[1]);
+            if (!isNaN(val) && val >= 0) {
+                return { type: 'surd', value: val };
+            }
+        }
+        return null; // Invalid format
+    }
+
+    // Function to format a number or surd for display
+    function formatNumOrSurd(obj) {
+        if (!obj) return "";
+        if (obj.type === 'number') {
+            return obj.value.toString();
+        } else if (obj.type === 'surd') {
+            return simplifySurd(obj.value);
+        }
+        return "";
+    }
+
+    // Surd Simplifier & Rationalizer Logic
+    const simplifyInput = document.getElementById('simplifyInput');
+    const simplifyBtn = document.getElementById('simplifyBtn');
+    const simplifyResult = document.getElementById('simplifyResult');
+
+    const numeratorInput = document.getElementById('numeratorInput');
+    const denominatorInput = document.getElementById('denominatorInput');
+    const rationalizeBtn = document.getElementById('rationalizeBtn');
+    const rationalizeResult = document.getElementById('rationalizeResult');
+
+    simplifyBtn.addEventListener('click', () => {
+        const num = parseFloat(simplifyInput.value);
+        if (isNaN(num)) {
+            simplifyResult.innerHTML = "Result: Please enter a number.";
+            return;
+        }
+        simplifyResult.innerHTML = `Result: <span class="math-notation">${simplifySurd(num)}</span>`;
+    });
+
+    rationalizeBtn.addEventListener('click', () => {
+        const numStr = numeratorInput.value.trim();
+        const denomStr = denominatorInput.value.trim();
+
+        let numExpr = parseNumberOrSurd(numStr);
+        if (!numExpr && numStr.includes('+') || numStr.includes('-') && numStr.includes('sqrt')) {
+             // Attempt to parse binomial numerator
+            const numBinomialMatch = numStr.match(/^(\d+)\s*([+-])\s*sqrt\((\d+)\)$/i);
+            if(numBinomialMatch) {
+                numExpr = {
+                    type: 'binomial',
+                    a: parseFloat(numBinomialMatch[1]),
+                    op: numBinomialMatch[2],
+                    b: parseFloat(numBinomialMatch[3])
+                };
+            }
+        }
+        if (!numExpr) {
+            rationalizeResult.innerHTML = "Result: Invalid numerator format. Use a number, 'sqrt(X)', or 'A+/-sqrt(X)'.";
+            return;
+        }
+
+        let denomExpr = parseNumberOrSurd(denomStr);
+        if (!denomExpr && denomStr.includes('+') || denomStr.includes('-') && denomStr.includes('sqrt')) {
+            // Attempt to parse binomial denominator
+            const denomBinomialMatch = denomStr.match(/^(\d+)\s*([+-])\s*sqrt\((\d+)\)$/i);
+            if(denomBinomialMatch) {
+                denomExpr = {
+                    type: 'binomial',
+                    a: parseFloat(denomBinomialMatch[1]),
+                    op: denomBinomialMatch[2],
+                    b: parseFloat(denomBinomialMatch[3])
+                };
+            }
+        }
+        if (!denomExpr) {
+            rationalizeResult.innerHTML = "Result: Invalid denominator format. Use 'sqrt(X)' or 'A+/-sqrt(X)'.";
+            return;
+        }
+
+        let finalNumerator = "";
+        let finalDenominator = "";
+
+        if (denomExpr.type === 'single') {
+            // Case: N / sqrt(X)
+            const x = denomExpr.value;
+            if (x === 0) {
+                rationalizeResult.innerHTML = "Result: Denominator cannot be zero.";
+                return;
+            }
+
+            if (numExpr.type === 'number') {
+                finalNumerator = `${numExpr.value}&radic;${x}`;
+                finalDenominator = x;
+            } else if (numExpr.type === 'surd') {
+                const product = numExpr.value * x;
+                finalNumerator = simplifySurd(product);
+                finalDenominator = x;
+            } else if (numExpr.type === 'binomial') {
+                const a = numExpr.a;
+                const op = numExpr.op;
+                const b = numExpr.b;
+                const simplifiedB = simplifySurd(b);
+                const productWithSurd = simplifySurd(b * x);
+                finalNumerator = `${a}&radic;${x} ${op} ${productWithSurd}`;
+                finalDenominator = x;
+            }
+
+            // Simplify the fraction if possible (e.g., 6sqrt(2)/2 -> 3sqrt(2))
+            if (numExpr.type === 'number' && finalDenominator !== 0) {
+                const commonDivisor = gcd(numerator, finalDenominator);
+                if (commonDivisor > 1) {
+                    finalNumerator = `${numerator / commonDivisor}&radic;${x}`;
+                    finalDenominator = finalDenominator / commonDivisor;
+                }
+            } else if (numExpr.type === 'binomial' && finalDenominator !== 0) {
+                const commonDivisor = gcd(numExpr.a, finalDenominator);
+                if (commonDivisor > 1) {
+                     // This part needs more robust simplification if the surd part also simplifies
+                     // For now, only simplify the rational part
+                }
+            }
+
+
+        } else if (denomExpr.type === 'binomial') {
+            // Case: N / (A +/- sqrt(B))
+            const a = denomExpr.a;
+            const op = denomExpr.op;
+            const b = denomExpr.b;
+
+            const conjugateOp = (op === '+') ? '-' : '+';
+            const conjugateDenomStr = `${a}${conjugateOp}&radic;${b}`;
+
+            const denomSquared = (a * a) - b;
+            if (denomSquared === 0) {
+                rationalizeResult.innerHTML = "Result: Denominator becomes zero after rationalization (e.g., 2+sqrt(4)).";
+                return;
+            }
+            finalDenominator = denomSquared;
+
+            if (numExpr.type === 'number') {
+                const num = numExpr.value;
+                if (num === 1) {
+                    finalNumerator = `${a}${conjugateOp}&radic;${b}`;
+                } else {
+                    finalNumerator = `${num}(${a}${conjugateOp}&radic;${b})`;
+                }
+            } else if (numExpr.type === 'surd') {
+                const numVal = numExpr.value;
+                // Numerator: (sqrt(numVal)) * (a +/- sqrt(b)) = a*sqrt(numVal) +/- sqrt(numVal*b)
+                finalNumerator = `${a}&radic;${numVal} ${conjugateOp} &radic;${numVal * b}`;
+                finalNumerator = finalNumerator.replace(`&radic;${numVal * b}`, simplifySurd(numVal * b));
+                finalNumerator = finalNumerator.replace(`&radic;${numVal}`, simplifySurd(numVal));
+
+            } else if (numExpr.type === 'binomial') {
+                // (A +/- sqrt(B)) * (C +/- sqrt(D))
+                const numA = numExpr.a;
+                const numOp = numExpr.op;
+                const numB = numExpr.b; // This is the value under the sqrt in numerator
+
+                // Denom conjugate: (a +/- sqrt(b))
+                const conjA = a;
+                const conjOp = conjugateOp;
+                const conjB = b; // This is the value under the sqrt in denominator
+
+                // (numA +/- sqrt(numB)) * (conjA +/- sqrt(conjB))
+                // = numA*conjA +/- numA*sqrt(conjB) +/- conjA*sqrt(numB) +/- sqrt(numB*conjB)
+                let term1 = numA * conjA;
+                let term2 = `${numA}${conjOp}${simplifySurd(conjB)}`;
+                let term3 = `${(numOp === '+') ? '+' : '-'}${conjA}${simplifySurd(numB)}`;
+                let term4 = `${(numOp === conjOp) ? '+' : '-'}${simplifySurd(numB * conjB)}`;
+
+                // Need to combine rational parts and surd parts if possible
+                // This is a more complex simplification that might require a dedicated math library for full robustness
+                finalNumerator = `${term1} ${term2} ${term3} ${term4}`;
+            }
+        }
+        
+        // Final simplification of the fraction (if both are numbers)
+        if (typeof finalNumerator === 'number' && typeof finalDenominator === 'number') {
+            const common = gcd(finalNumerator, finalDenominator);
+            finalNumerator /= common;
+            finalDenominator /= common;
+        }
+
+        rationalizeResult.innerHTML = `Result: <span class="math-notation">${finalNumerator} / ${finalDenominator}</span>`;
+    });
+
+
+    updateCounts();
+    renderQuestions();
+    setupChart();
+});
+</script>
+
+</body>
+</html>
